@@ -1,1 +1,7 @@
 opencv-python
+customtkinter
+pillow
+tkinter
+ultralytics
+numpy
+matplotlib

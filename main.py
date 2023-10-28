@@ -1,16 +1,33 @@
+import os
+import shutil
 import tkinter as tk
-from tkinter import filedialog as fd, messagebox, ttk, Canvas, Button
-import mimetypes
+from tkinter import filedialog as fd, messagebox, ttk
 
 import customtkinter
 import cv2
 from PIL import Image, ImageTk
-from ttkthemes import ThemedTk
+import numpy
+import matplotlib.pyplot as plt
+
+from ultralytics import YOLO
+
+model = YOLO('model/best.pt')
+
+class_colors = \
+    {
+        0: (255, 0, 0),
+        1: (0, 255, 0),
+        2: (0, 0, 255)
+    }
+
+class_font = cv2.FONT_HERSHEY_SIMPLEX
+class_font_scale = 1.2
 
 
-class App():
+class App:
     def __init__(self, root):
         super().__init__()
+        # Создаем главное окно и настраиваем
         self.root = root
         self.root.tk.call("source", "azure.tcl")
         self.root.tk.call("set_theme", "dark")
@@ -19,8 +36,9 @@ class App():
         self.root.config(bg="#E5E5E5")
         self.root.resizable(width=False, height=False)
 
-        root.iconbitmap("pngwing.com.png")
+        root.iconbitmap("images/pngwing.com.ico")
 
+        # Создание меню и добавление в него пунктов
         self.menu = tk.Menu(root)
         self.file_menu = tk.Menu(self.menu, tearoff=0)
 
@@ -33,55 +51,60 @@ class App():
 
         self.root.config(menu=self.menu)
 
-        #Стили фреймов
+        # Стили фреймов
         self.style = ttk.Style()
         self.style.configure("RoundedFrame.TFrame", background="#14213D", borderedwidth=5, borderradius=200)
 
         # Создаем фреймы
-        self.frame1 = ttk.Frame(self.root, style="RoundedFrame.TFrame")
-        self.frame1.place(height=400, width=300, x=50, y=50)
-        self.frame2 = ttk.Frame(root, style="RoundedFrame.TFrame")
-        self.frame2.place(height=400, width=300, x=390, y=50)
+        self.frame_for_left = ttk.Frame(self.root, style="RoundedFrame.TFrame")
+        self.frame_for_left.place(height=400, width=300, x=50, y=50)
+        self.frame_for_right = ttk.Frame(root, style="RoundedFrame.TFrame")
+        self.frame_for_right.place(height=400, width=300, x=390, y=50)
 
         # Создаем рамку для картинки
-        self.canvas = tk.Canvas(self.frame1, width=150, height=150, bg='#14213D')
-        self.img = Image.open('icons8-бобина-с-пленкой-90.png')
+        self.canvas = tk.Canvas(self.frame_for_left, width=150, height=150, bg='#14213D')
+        self.img = Image.open('images/icons8-бобина-с-пленкой-90.png')
         self.new_image = self.img.resize((150, 150))
         self.image = ImageTk.PhotoImage(self.new_image)
         self.canvas.create_image(75, 75, image=self.image)
         self.canvas.place(width=150, height=150, x=75, y=75)
 
         # Cоздаем картинку для второго фрейма
-        self.canvas2 = tk.Canvas(self.frame2, width=150, height=150, bg='#14213D')
-        self.img2 = Image.open('security-camera.png')
+        self.canvas2 = tk.Canvas(self.frame_for_right, width=150, height=150, bg='#14213D')
+        self.img2 = Image.open('images/security-camera.png')
         self.new_image = self.img2.resize((150, 150))
         self.image2 = ImageTk.PhotoImage(self.new_image)
         self.canvas2.create_image(75, 75, image=self.image2)
         self.canvas2.place(width=150, height=150, x=75, y=75)
 
         # Добавляем кнопки
-        self.btn = ttk.Button(self.frame1, text="Выберите фото", style='Accent.TButton', command=self.image_dialog)
-        self.btn.place(width=150, height=50, x=75, y=250)
-        self.btn2 = ttk.Button(self.frame1, text="Выберите видео", style='Accent.TButton',
-                               command=self.file_open_video_dialog)
-        self.btn2.place(width=150, height=50, x=75, y=320)
-        self.btn3 = ttk.Button(self.frame2, text="Подключить камеру", style='Accent.TButton',
-                               command=self.camera_dialog)
-        self.btn3.place(width=150, height=50, x=75, y=280)
-
-
+        self.btn_for_photo = ttk.Button(self.frame_for_left, text="Выберите фото",
+                                        style='Accent.TButton',
+                                        command=self.image_dialog)
+        self.btn_for_photo.place(width=150, height=50, x=75, y=250)
+        self.btn_for_video = ttk.Button(self.frame_for_left, text="Выберите видео",
+                                        style='Accent.TButton',
+                                        command=self.file_open_video_dialog)
+        self.btn_for_video.place(width=150, height=50, x=75, y=320)
+        self.btn_for_camera = ttk.Button(self.frame_for_right, text="Подключить камеру",
+                                         style='Accent.TButton',
+                                         command=self.camera_dialog)
+        self.btn_for_camera.place(width=150, height=50, x=75, y=280)
 
     def file_open_dialog(self):
-        filetypes = ('Файлы изображений', '*.jpeg'), ('Файлы видео', '*.mp4'), ('Все файлы', '*.*')
+        filetypes = (('Файлы изображений', '*.jpeg'),
+                     ('Файлы видео', '*.mp4'),
+                     ('Все файлы', '*.*'))
 
         filenames = fd.askopenfilenames(title='Open a file', initialdir='/', filetypes=filetypes)
 
     def image_dialog(self):
         filetypes = (("Файлы изображеий", "*.jpeg *.png *.jpg"),)
         filenames = fd.askopenfilenames(title='Open a file', initialdir='/', filetypes=filetypes)
-        self.root.destroy()
-        ip = ImagePlayer(filenames)
-        ip.root.TopLevel()
+        if len(filenames) != 0:
+            self.root.destroy()
+            ip = ImagePlayer(filenames)
+            ip.MainWindowForImagePlayer.TopLevel()
 
     def camera_dialog(self):
         dialog = Dialog(self.root)
@@ -91,9 +114,10 @@ class App():
 
         filenames = fd.askopenfilenames(title='Open a file', initialdir='/', filetypes=filetypes)
         # сюда нужно подставить обработку файлов
-        self.root.destroy()
-        vp = VideoPlayer(filenames)
-        vp.root.TopLevel()
+        if len(filenames) != 0:
+            self.root.destroy()
+            vp = VideoPlayer(filenames)
+            vp.VideoPlayerMainWindow.TopLevel()
 
         # подставляем обработку видео
 
@@ -101,24 +125,23 @@ class App():
         tk.messagebox.showinfo(title="Реклама", message="Вступайте в ряды МВД России")
 
 
+# Класс для работы с видео
 class VideoPlayer:
     def __init__(self, video_paths):
         self.video_paths = video_paths
         self.videos = []
 
+        self.VideoPlayerMainWindow = tk.Tk()
+        self.VideoPlayerMainWindow.title("Video Player")
 
-        self.root = tk.Tk()
-        self.root.title("Video Player")
-
-        small_icon = tk.PhotoImage(file="pngwing.com.png")
-        large_icon = tk.PhotoImage(file="pngwing.com.png")
-        self.root.iconphoto(False, large_icon, small_icon)
+        self.VideoPlayerMainWindow.iconbitmap("images/pngwing.com.ico")
 
         self.frames = []
         self.canvases = []
 
         self.calculate_grid_dimensions(len(self.video_paths))
-        self.root.geometry(f"{self.root.winfo_screenwidth()}x{self.root.winfo_screenheight()}")
+        self.VideoPlayerMainWindow.geometry(
+            f"{self.VideoPlayerMainWindow.winfo_screenwidth()}x{self.VideoPlayerMainWindow.winfo_screenheight()}")
         for i in range(self.rows):
             for j in range(self.columns):
                 index = i * self.columns + j
@@ -128,7 +151,7 @@ class VideoPlayer:
                     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
                     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
-                    video_frame = tk.Frame(self.root, width=self.grid_width, height=self.grid_height)
+                    video_frame = tk.Frame(self.VideoPlayerMainWindow, width=self.grid_width, height=self.grid_height)
                     video_frame.grid(row=i, column=j)
 
                     canvas = tk.Canvas(video_frame, width=self.grid_width, height=self.grid_height)
@@ -144,19 +167,21 @@ class VideoPlayer:
                         'canvas': canvas,
                     })
                 else:
-                    placeholder_frame = tk.Frame(self.root, width=self.grid_width, height=self.grid_height)
+                    placeholder_frame = tk.Frame(self.VideoPlayerMainWindow, width=self.grid_width,
+                                                 height=self.grid_height)
                     placeholder_frame.grid(row=i, column=j)
 
-                    placeholder_image = Image.open("placeholder.jpg").resize((self.grid_width, self.grid_height))
+                    placeholder_image = Image.open("images/placeholder.jpg").resize(
+                        (self.grid_width, self.grid_height))
                     placeholder_photo = ImageTk.PhotoImage(placeholder_image)
                     placeholder_label = tk.Label(placeholder_frame, image=placeholder_photo)
                     placeholder_label.image = placeholder_photo
                     placeholder_label.pack()
-        self.root.protocol('WM_DELETE_WINDOW', self.back_to_start_window)
+        self.VideoPlayerMainWindow.protocol('WM_DELETE_WINDOW', self.back_to_start_window)
 
         self.play_videos()
 
-        self.root.mainloop()
+        self.VideoPlayerMainWindow.mainloop()
 
     def calculate_grid_dimensions(self, num_videos):
         # Calculate the number of rows and columns in the grid
@@ -164,11 +189,11 @@ class VideoPlayer:
         self.rows = (num_videos + self.columns - 1) // self.columns
 
         # Calculate the size of each video frame in the grid
-        self.grid_width = self.root.winfo_screenwidth() // self.columns
-        self.grid_height = self.root.winfo_screenheight() // self.rows
+        self.grid_width = self.VideoPlayerMainWindow.winfo_screenwidth() // self.columns
+        self.grid_height = self.VideoPlayerMainWindow.winfo_screenheight() // self.rows
 
     def back_to_start_window(self):
-        self.root.destroy()
+        self.VideoPlayerMainWindow.destroy()
         root = customtkinter.CTk()
         app = App(root)
         app.root.mainloop()
@@ -187,33 +212,32 @@ class VideoPlayer:
                 video['canvas'].create_image(0, 0, image=photo, anchor=tk.NW)
                 video['canvas'].image = photo
             else:
-                placeholder_image = Image.open("placeholder.jpg").resize((self.grid_width, self.grid_height))
+                placeholder_image = Image.open("images/placeholder.jpg").resize((self.grid_width, self.grid_height))
                 placeholder_photo = ImageTk.PhotoImage(placeholder_image)
 
                 video['canvas'].create_image(0, 0, image=placeholder_photo, anchor=tk.NW)
                 video['canvas'].image = placeholder_photo
 
-        self.root.after(1, self.play_videos)
+        self.VideoPlayerMainWindow.after(1, self.play_videos)
 
 
+# Класс для работы с изображениями
 class ImagePlayer:
     def __init__(self, img_list):
         self.image_list = img_list
-        self.root = tk.Tk()
-        self.root.title("Image Explorer")
-        self.root.geometry("800x600")
-        small_icon = tk.PhotoImage(file="pngwing.com.png")
-        large_icon = tk.PhotoImage(file="pngwing.com.png")
-        self.root.iconphoto(False, large_icon, small_icon)
+        self.MainWindowForImagePlayer = tk.Tk()
+        self.MainWindowForImagePlayer.title("Image Explorer")
+        self.MainWindowForImagePlayer.geometry("800x600")
+        self.MainWindowForImagePlayer.iconbitmap("images/pngwing.com.ico")
 
         self.image_labels = []
 
         self.open_images_dialog()
-        self.root.protocol('WM_DELETE_WINDOW', self.back_to_start_window)
-        self.root.mainloop()
+        self.MainWindowForImagePlayer.protocol('WM_DELETE_WINDOW', self.back_to_start_window)
+        self.MainWindowForImagePlayer.mainloop()
 
     def back_to_start_window(self):
-        self.root.destroy()
+        self.MainWindowForImagePlayer.destroy()
         root = customtkinter.CTk()
         app = App(root)
         app.root.mainloop()
@@ -225,34 +249,84 @@ class ImagePlayer:
         for image_label in self.image_labels:
             image_label.destroy()
 
+        # Calculate image size based on the number of files
+        num_files = len(filenames)
+        max_size = 100  # Maximum size of the image
+        min_size = 800  # Minimum size of the image
+        if num_files == 0:
+            image_size = min_size
+        else:
+            image_size = max_size - ((max_size - min_size) / num_files)
+
         # Create new image labels
         for i, filename in enumerate(filenames):
             row = i // 3
             column = i % 3
+            path = 'images'
+            if not os.path.exists(path):
+                os.makedirs(path)
+            if not os.path.exists('output_files'):
+                os.makedirs('output_files')
 
-            image = Image.open(filename)
-            image = image.resize((200, 200))
+            virat_img = cv2.imread(filename)
+            borderoutput = cv2.copyMakeBorder(virat_img, 20, 20, 20, 20, cv2.BORDER_CONSTANT, value=[0, 0, 0])
+            cv2.imwrite('images/output.png', borderoutput)
+
+            result = model('images/output.png', save_txt=True, save_crop=True)
+
+            print(result)
+            for result_item in result:
+
+                boxes = result_item.boxes.cpu().numpy()
+                img = cv2.imread('images/output.png')
+
+                for box in boxes:
+                    r = box.xyxy[0].astype(int)
+                    cls = box.cls[0].astype(int)
+                    if cls == 0:
+                        label = "Man with weapon"
+                    if cls == 1:
+                        label = "Short weapons"
+                    if cls == 2:
+                        label = "Long weapons"
+
+                    box_color = class_colors.get(cls, (255, 255, 255))
+
+                    (label_width, label_height), _ = cv2.getTextSize(label, class_font, class_font_scale, 1)
+
+                    text_position = (r[0], r[1] - 3 - label_height)
+
+                    cv2.rectangle(img, (r[0], r[1]), (r[2], r[3]), box_color, 2)
+                    cv2.putText(img, label, text_position, class_font, class_font_scale, box_color, 2)
+                    cv2.imwrite('images/output.png', img)
+                    file_name = os.path.basename(filename)
+                    shutil.copy2('images/output.png', f'output_files/{file_name}')
+
+            image = Image.open('images/output.png')
+            image = image.resize((int(image_size), int(image_size)))
             image = ImageTk.PhotoImage(image)
-            image_label = tk.Label(self.root, image=image)
+
+            image_label = tk.Label(self.MainWindowForImagePlayer, image=image)
             image_label.image = image
-            image_label.grid(row=row, column=column, padx=10, pady=10)  # Добавлены отступы для отделения изображений
+            image_label.grid(row=row, column=column, padx=10, pady=10)
+
             self.image_labels.append(image_label)
 
-        self.root.update_idletasks()  # Обновление размеров окна
-        self.root.geometry(f"{self.root.winfo_reqwidth()}x{self.root.winfo_reqheight()}")  # Изменение размеров окна
+        os.remove('images/output.png')
+        self.MainWindowForImagePlayer.update_idletasks()
+        self.MainWindowForImagePlayer.geometry(
+            f"{self.MainWindowForImagePlayer.winfo_reqwidth()}x{self.MainWindowForImagePlayer.winfo_reqheight()}")
+        self.MainWindowForImagePlayer.resizable(width=False, height=False)
 
-        self.root.resizable(width=False, height=False)
 
-
+# Класс для создания сообщения (заглушка для камеры)
 class Dialog:
     def __init__(self, parent):
         top = self.top = tk.Toplevel(parent)
         self.top.geometry('300x200')
         self.top.resizable(width=False, height=False)
 
-        small_icon = tk.PhotoImage(file="pngwing.com.png")
-        large_icon = tk.PhotoImage(file="pngwing.com.png")
-        self.top.iconphoto(False, large_icon, small_icon)
+        self.top.iconbitmap("images/pngwing.com.ico")
         self.myLabel = tk.Label(self.top, text='Введите ip адрес камеры')
         self.myLabel2 = tk.Label(self.top, text="Порт")
         self.myLabel.place(x=50, y=30)
@@ -265,36 +339,7 @@ class Dialog:
         self.mySubmitButton.place(x=50, y=150)
 
     def send(self):
-        self.mb = tk.messagebox.showinfo(title='Не готово', message="Функция недоступна в данное время")
-
-
-class GradientFrame(tk.Canvas):
-    '''A gradient frame which uses a canvas to draw the background'''
-
-    def __init__(self, parent, color1="red", color2="black", **kwargs):
-        tk.Canvas.__init__(self, parent, **kwargs)
-        self._color1 = color1
-        self._color2 = color2
-        self.bind("<Configure>", self._draw_gradient)
-
-    def _draw_gradient(self, event=None):
-        '''Draw the gradient'''
-        self.delete("gradient")
-        width = self.winfo_width()
-        height = self.winfo_height()
-        limit = width
-        (r1, g1, b1) = self.winfo_rgb(self._color1)
-        (r2, g2, b2) = self.winfo_rgb(self._color2)
-        r_ratio = float(r2 - r1) / limit
-        g_ratio = float(g2 - g1) / limit
-        b_ratio = float(b2 - b1) / limit
-        for i in range(limit):
-            nr = int(r1 + (r_ratio * i))
-            ng = int(g1 + (g_ratio * i))
-            nb = int(b1 + (b_ratio * i))
-            color = "#%4.4x%4.4x%4.4x" % (nr, ng, nb)
-            self.create_line(i, 0, i, height, tags=("gradient",), fill=color)
-        self.lower("gradient")
+        mb = tk.messagebox.showinfo(title='Не готово', message="Функция недоступна в данное время")
 
 
 if __name__ == "__main__":

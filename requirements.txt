@@ -1,7 +1,62 @@
-opencv-python
 customtkinter
-pillow
 tkinter
-ultralytics
-numpy
-matplotlib
+Cython==0.29.35
+datasets==2.12.0
+ffmpeg-python==0.2.0
+ipykernel @ file:///croot/ipykernel_1671488378391/work
+ipython @ file:///croot/ipython_1680701871216/work
+ipython-genutils @ file:///tmp/build/80754af9/ipython_genutils_1606773439826/work
+ipywidgets @ file:///croot/ipywidgets_1679394798311/work
+jupyter @ file:///tmp/abs_33h4eoipez/croots/recipe/jupyter_1659349046347/work
+jupyter-console @ file:///croot/jupyter_console_1679999630278/work
+jupyter-server @ file:///croot/jupyter_server_1671707632269/work
+jupyter_client @ file:///home/conda/feedstock_root/build_artifacts/jupyter_client_1673615989977/work
+jupyter_core @ file:///croot/jupyter_core_1679906564508/work
+jupyterlab @ file:///croot/jupyterlab_1675354114448/work
+jupyterlab-pygments @ file:///tmp/build/80754af9/jupyterlab_pygments_1601490720602/work
+jupyterlab-widgets @ file:///croot/jupyterlab_widgets_1679055282532/work
+jupyterlab_server @ file:///croot/jupyterlab_server_1680792501448/work
+libclang==16.0.0
+librosa==0.10.0.post2
+Markdown @ file:///croot/markdown_1671541909495/work
+markdown-it-py==3.0.0
+matplotlib @ file:///croot/matplotlib-suite_1679593461707/work
+matplotlib-inline @ file:///opt/conda/conda-bld/matplotlib-inline_1662014470464/work
+notebook @ file:///croot/notebook_1681756172480/work
+notebook_shim @ file:///croot/notebook-shim_1668160579331/work
+numpy==1.23.5
+opencv-python==4.8.0.76
+opencv-python-headless==4.8.1.78
+pandas==1.5.3
+Pillow==9.4.0
+python-bidi==0.4.2
+python-dateutil @ file:///tmp/build/80754af9/python-dateutil_1626374649649/work
+python-editor==1.0.4
+python-multipart==0.0.6
+python-version==0.0.2
+pytorch-lightning==2.0.5
+pytorch-metric-learning==2.2.0
+scikit-image==0.22.0
+scikit-learn @ file:///croot/scikit-learn_1680198742267/work
+scikit-plot==0.3.7
+scipy==1.10.1
+seaborn @ file:///croot/seaborn_1673479180098/work
+streamlit==1.27.2
+streamlit-option-menu==0.3.6
+tensorboard @ file:///home/builder/mesters/opt/envs/tensorflow/conda-bld/tensorboard_1678126660189/work/tensorboard-2.11.0-py3-none-any.whl
+tensorboard-data-server @ file:///croot/tensorboard-data-server_1670853588388/work/tensorboard_data_server-0.6.1-py3-none-manylinux2010_x86_64.whl
+tensorboard-plugin-wit @ file:///home/builder/tkoch/workspace/tensorflow/tensorboard-plugin-wit_1658918494740/work/tensorboard_plugin_wit-1.8.1-py3-none-any.whl
+tensorboardX==2.6
+tensorflow @ file:///home/builder/mesters/opt/envs/tensorflow/conda-bld/tensorflow-base_1678210207252/work/tensorflow_pkg/tensorflow-2.11.0-cp310-cp310-linux_x86_64.whl
+tensorflow-addons==0.21.0
+tensorflow-estimator @ file:///home/builder/mesters/opt/envs/tensorflow/conda-bld/tensorflow-estimator_1678126842282/work/tensorflow_estimator-2.11.0-py2.py3-none-any.whl
+tensorflow-io-gcs-filesystem==0.32.0
+tensorflow-probability==0.18.0
+torch==2.0.0
+torch-audiomentations==0.11.0
+torch-pitch-shift==1.2.4
+torchaudio==2.0.0
+torchmetrics==1.0.1
+torchvision==0.15.0
+tqdm==4.65.0
+ultralytics==8.0.198

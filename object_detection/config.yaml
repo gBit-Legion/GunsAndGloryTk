@@ -1,0 +1,8 @@
+path: /home/isibgatullina/pfo/dataset/train_dataset
+train: train
+val: val
+test: test
+names: 
+  0: 'man_with_weapon'
+  1: 'short_weapons'
+  2: 'long_weapons'

@@ -151,6 +151,7 @@ class VideoPlayer:
                     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
                     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
+
                     video_frame = tk.Frame(self.VideoPlayerMainWindow, width=self.grid_width, height=self.grid_height)
                     video_frame.grid(row=i, column=j)
 
@@ -207,7 +208,40 @@ class VideoPlayer:
                 image = Image.fromarray(frame)
 
                 resized_image = image.resize((self.grid_width, self.grid_height))
+
                 photo = ImageTk.PhotoImage(resized_image)
+                img = ImageTk.getimage(photo)
+                img.save("tmp.png")
+
+                result = model('tmp.png', save_txt=True, save_crop=True)
+
+                for result_item in result:
+
+                    boxes = result_item.boxes.cpu().numpy()
+                    img = cv2.imread('tmp.png')
+
+                    for box in boxes:
+                        r = box.xyxy[0].astype(int)
+                        cls = box.cls[0].astype(int)
+                        if cls == 0:
+                            label = "Man with weapon"
+                        if cls == 1:
+                            label = "Short weapons"
+                        if cls == 2:
+                            label = "Long weapons"
+
+                        box_color = class_colors.get(cls, (255, 255, 255))
+
+                        (label_width, label_height), _ = cv2.getTextSize(label, class_font, class_font_scale, 1)
+
+                        text_position = (r[0], r[1] - 3 - label_height)
+
+                        cv2.rectangle(img, (r[0], r[1]), (r[2], r[3]), box_color, 2)
+                        cv2.putText(img, label, text_position, class_font, class_font_scale, box_color, 2)
+                        cv2.imwrite('tmp.png', img)
+                img = Image.open('tmp.png')
+                photo = ImageTk.PhotoImage(img)
+                os.remove('tmp.png')
 
                 video['canvas'].create_image(0, 0, image=photo, anchor=tk.NW)
                 video['canvas'].image = photo
@@ -274,7 +308,6 @@ class ImagePlayer:
 
             result = model('images/output.png', save_txt=True, save_crop=True)
 
-            print(result)
             for result_item in result:
 
                 boxes = result_item.boxes.cpu().numpy()
